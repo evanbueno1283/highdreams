@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foot Measurement Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    .scanner-container {
+      text-align: center;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      display: none; /* Hidden by default, used for image capture */
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #message {
+      margin-top: 10px;
+    }
+
+    .measurement {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+
+    #file-input {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scanner-container">
+    <h2>Foot Measurement Scanner</h2>
+    <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
+    <br>
+    <button id="scan-btn">Scan Foot</button>
+    <br>
+    <input type="file" id="file-input" accept="image/*">
+    <br>
+    <div id="message"></div>
+    <div id="foot-measurement" class="measurement"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const scanBtn = document.getElementById('scan-btn');
+    const fileInput = document.getElementById('file-input');
+    const messageDiv = document.getElementById('message');
+    const footMeasurementDiv = document.getElementById('foot-measurement');
+
+    let uploadedImage = null;
+
+    // Access the camera
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+        messageDiv.innerText = "Error accessing camera.";
+      }
+    }
+
+    // Capture the image from the video feed
+    function captureImage() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Show the captured image
+      canvas.style.display = 'block';
+
+      // Optionally, use image processing techniques here
+      // For now, we are just displaying the image and the concept of measuring it.
+
+      const imageData = canvas.toDataURL('image/png');
+      console.log(imageData); // You can use this base64 string to send the image to a server.
+
+      // Simulate foot measurement based on the captured image (you can later implement real measurements)
+      measureFootSize();
+    }
+
+    // Function to simulate a basic foot size measurement
+    function measureFootSize() {
+      // For demo, we are calculating a rough 'foot length' based on the image width
+      // You would later replace this with actual foot detection logic
+
+      const footLength = canvas.width / 3; // Placeholder for foot length in pixels
+      const cmPerPixel = 0.025; // Assume each pixel corresponds to 0.025 cm for example
+
+      const footLengthInCm = footLength * cmPerPixel;
+
+      // Convert foot length to Euro size using the formula
+      const euroSize = (footLengthInCm * 1.5) / 2 - 1;
+
+      footMeasurementDiv.innerText = `Estimated Foot Length: ${footLengthInCm.toFixed(2)} cm\nEuro Shoe Size: ${Math.round(euroSize)}`;
+
+      messageDiv.innerText = "Image captured! Check the canvas above.";
+    }
+
+    // Handle file input for uploaded images
+    fileInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            // Draw the uploaded image on the canvas
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+            canvas.style.display = 'block'; // Show the image on the canvas
+
+            // Simulate foot size measurement for the uploaded image
+            measureFootSize();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Start camera on page load
+    startCamera();
+
+    // Add event listener for the "Scan" button (to capture from video feed)
+    scanBtn.addEventListener('click', captureImage);
+  </script>
+
+</body>
+</html>

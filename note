@@ -1,0 +1,162 @@
+<script>
+
+ const email = "<?php echo $_SESSION['user']['email']; ?>";
+
+
+  const stars = document.querySelectorAll('#starRating span');
+  let rating = 0;
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      rating = star.getAttribute('data-value');
+      highlightStars(rating);
+    });
+  });
+
+  function highlightStars(rating) {
+    stars.forEach(star => {
+      if (star.getAttribute('data-value') <= rating) {
+        star.textContent = '★'; // filled star
+        star.style.color = "gold";
+      } else {
+        star.textContent = '☆'; // empty star
+        star.style.color = "gray";
+      }
+    });
+  }
+
+  // Show review modal when logout button clicked
+  const logoutButton = document.getElementById('logout-button');
+  const reviewModal = document.getElementById('reviewModal');
+
+  logoutButton.addEventListener('click', () => {
+    reviewModal.style.display = 'block';
+  });
+
+  document.getElementById('submitReview').addEventListener('click', () => {
+    const comment = document.getElementById('comment').value;
+
+    if (rating === 0) {
+      alert("Please select a rating.");
+      return;
+    }
+
+    fetch('user_reviews.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        rating: rating,
+        comment: comment
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        alert('Review submitted. Logging out...');
+        window.location.href = 'login.php'; // example logout redirect
+      } else {
+        alert('Failed to submit review.');
+      }
+    })
+    .catch(err => {
+      alert('Error submitting review.');
+      console.error(err);
+    });
+  });
+  console.log(email);
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$user_email = $_SESSION['user']['email'];
+
+// Check if email exists in user_reviews
+$stmt = $mysqli->prepare("SELECT COUNT(*) FROM user_reviews WHERE email = ?");
+$stmt->bind_param("s", $user_email);
+$stmt->execute();
+$stmt->bind_result($review_count);
+$stmt->fetch();
+$stmt->close();
+
+$hasReview = $review_count > 0 ? 'true' : 'false';
+?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+gumagana to
+
+
+$user_email = $_SESSION['user']['email'] ?? null;
+
+if (!$user_email) {
+    die("No user logged in.");
+}
+
+$stmt = $mysqli->prepare("SELECT COUNT(*) FROM user_reviews WHERE email = ?");
+$stmt->bind_param("s", $user_email);
+$stmt->execute();
+$stmt->bind_result($review_count);
+$stmt->fetch();
+$stmt->close();
+
+$hasReview = $review_count > 0 ? 'true' : 'false'; // ito OK na for JS

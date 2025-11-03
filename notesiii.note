@@ -1,0 +1,306 @@
+laman naning pannel
+
+
+<div id="sidebar" class="sidebar">
+  <button class="close-btn" onclick="toggleSidebar()">×</button>
+  <a href="angular-ar/index.html"><img src="image/try1.png" alt="Try On"><span>Try On</span></a>
+  <a href="addtocart.php"><img src="image/cart.png" alt="Cart"><span>Add to Cart</span></a>
+  <a href="order.php"><img src="image/orders.png" alt="Orders"><span>Orders</span></a>
+  <a href="scan.php"><img src="image/logo4.png" alt="Scan"><span>Scan</span></a>
+  <a href="account.php"><img src="image/account.png" alt="Profile"><span>Profile</span></a>
+   <div class="logout-container">
+  <button class="logout-btn" id="logout-button">Logout</button>
+</div>
+
+</div>
+
+
+
+
+
+
+
+apin reni deng style na 
+
+
+
+ /*simula*/
+  }.menu-btn {
+  font-size: 28px;
+  background: none;
+  border: none;
+  color: gray;
+  cursor: pointer;
+  display: none;
+  position: absolute;
+  left: 20px;
+  transition: transform 0.2s ease;
+}
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 260px;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* black na may 60% transparency */
+  color: white;
+  transition: all 0.4s ease;
+  z-index: 9999;
+  padding-top: 60px;
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
+
+  /* added layout fix */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px; /* space between items */
+}
+
+.sidebar .close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  left: auto !important; /* Force it to the right */
+  background: none;
+  border: none;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  height: auto;
+}
+
+.sidebar .close-btn:hover {
+  transform: rotate(90deg);
+  color: #ffffff;
+}
+.sidebar.active {
+  left: 0;
+  backdrop-filter: blur(5px);
+}
+
+.sidebar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 80%;
+  padding: 10px 0;
+  text-decoration: none;
+  color: white;
+  font-size: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.sidebar a img {
+  width: 30px;
+  height: 30px;
+}
+.menu-btn {
+  font-size: 28px;
+  background: none;
+  border: none;
+  color: #bebcbaff;
+  cursor: pointer;
+  display: none;
+  position: absolute;
+  left: 20px;
+  transition: transform 0.2s ease;
+}
+.sidebar a:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-left: 4px solid white;
+  transform: translateX(5px);
+}
+
+
+
+.menu-btn:hover {
+  transform: scale(1.2);
+  color: white;
+}
+
+@media (max-width: 2560px) {
+  .menu-btn {
+     display: block; 
+    }
+}.logout-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  padding: 10px 25px;
+  background-color: transparent; /* totally transparent */
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.7); /* manipis na puting border */
+  border-radius: 50px; /* oblong shape */
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* light white tint on hover */
+  transform: scale(1.05);
+}
+
+/*dulo*/
+
+
+
+
+
+
+
+
+button na keng header
+
+
+
+
+<header class="header">
+    
+
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+  
+
+      </div>
+      <div class="second-logo">
+        <img src="image/logo1.png" alt="Shoe Store Logo" />
+      </div>
+    </div>
+
+
+
+
+
+    dropdown na apin ni 
+
+
+
+
+
+
+    .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.4); 
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  z-index: 1;
+  right: 0; /* ito dapat meron */
+}
+
+.dropdown-content a {
+  color: rgb(255, 255, 255);
+  padding: 12px 16px;
+  display: block;
+  text-decoration: none;
+  border-bottom: 1px solid #ffffff;
+}
+
+.dropdown-content a:hover {
+  background-color: grey;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+
+
+
+
+
+
+script na apin reni
+
+
+
+
+
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+// === Auto close kapag nag-click sa labas ng sidebar ===
+document.addEventListener("click", function(event) {
+  const sidebar = document.getElementById("sidebar");
+  const menuBtn = document.querySelector(".menu-btn");
+
+  // kung active ang sidebar at hindi sa loob ng sidebar o menu button nag-click
+  if (
+    sidebar.classList.contains("active") &&
+    !sidebar.contains(event.target) &&
+    !menuBtn.contains(event.target)
+  ) {
+    sidebar.classList.remove("active");
+  }
+});
+
+
+
+
+
+
+
+home logo na apin ni 
+
+
+
+
+
+.home-logo {
+    height: 40px;
+      width: 40px; /* increase size to make it look "thicker" or bolder */
+    display: block;
+     margin-top:10px;
+     position: fixed;
+    left: 30px;
+     border: 2px solid black;  /* or any color you prefer */
+    border-radius: 10px;       /* optional: for rounded corners */
+    padding: 1px;
+}
+
+
+
+
+
+
+
+itang logo keng header apin ni
+
+
+
+
+
+
+
+.logo img,
+.second-logo img {  
+  height: 50px; /* sukat ng logo */
+  margin-left: 25px; /* pagitan sa kaliwa */
+  border: 2px solid white; /* puting outline */
+  border-radius: 50%; /* bilogin ang outline */
+  padding: 5px; /* espasyo sa loob ng bilog */
+  background-color: rgba(255, 255, 255, 0.05); /* optional subtle glow sa loob */
+}
+
+
+
+
+
+
+ENAKA MANGUTANG PA AYDAMO ATIYU NALANGAN KEN

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forgot Password</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-image: url('image/logo3.jpeg');  /* Relative path */
+      background-size: cover;  /* Ensure the image covers the entire screen */
+      background-position: center center;  /* Center the background image */
+      background-repeat: no-repeat;  /* Prevent image repetition */
+      background-attachment: fixed;  /* Optional: makes the background fixed while scrolling */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.8);  /* White with 80% opacity */
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeInUp 0.6s ease-out forwards; /* Animation added here */
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    body::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3); /* Black with 30% transparency */
+      z-index: -1; /* Send the overlay behind the content */
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], input[type="number"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .btn {
+      background-color: #000000;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .btn:hover {
+      background-color: #000000;
+    }
+
+    .error {
+      color: red;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .success {
+      color: rgb(255, 0, 0);
+      font-size: 16px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .code-verification-container {
+      margin-top: 20px;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeInUp 0.6s ease-out forwards; /* Animation added here */
+    }
+
+    .new-password-container {
+      margin-top: 20px;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeInUp 0.6s ease-out forwards; /* Animation added here */
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Forgot Password</h2>
+    <form id="forgot-password-form">
+      <div class="form-group">
+        <label for="phone-number">Enter your phone number</label>
+        <input type="text" id="phone-number" name="phone-number" placeholder="Phone Number" required>
+      </div>
+
+      <div class="error" id="error-message" style="display: none;">Please enter a valid phone number</div>
+
+      <button type="submit" class="btn">Reset Password</button>
+    </form>
+
+    <!-- Success message -->
+    <div id="success-message" class="success hidden">
+      A code has been sent to your phone number. Please check your messages.
+    </div>
+
+    <!-- Code verification form -->
+    <div id="code-verification-container" class="code-verification-container hidden">
+      <h2>Verify Code</h2>
+      <form id="code-verification-form">
+        <div class="form-group">
+          <label for="verification-code">Enter the code you received</label>
+          <input type="number" id="verification-code" name="verification-code" placeholder="Code" required>
+        </div>
+
+        <div class="error" id="code-error-message" style="display: none;">Invalid code. Please try again.</div>
+
+        <button type="submit" class="btn">Verify Code</button>
+      </form>
+    </div>
+
+    <!-- Create New Password Form -->
+    <div id="new-password-container" class="new-password-container hidden">
+      <h2>Create New Password</h2>
+      <form id="new-password-form">
+        <div class="form-group">
+          <label for="new-password">New Password</label>
+          <input type="password" id="new-password" name="new-password" placeholder="New Password" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm Password" required>
+        </div>
+
+        <div class="error" id="password-error-message" style="display: none;">Passwords do not match or are invalid</div>
+
+        <button type="submit" class="btn">Create New Password</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("forgot-password-form");
+    const phoneNumberInput = document.getElementById("phone-number");
+    const errorMessage = document.getElementById("error-message");
+    const successMessage = document.getElementById("success-message");
+    const codeVerificationContainer = document.getElementById("code-verification-container");
+    const codeVerificationForm = document.getElementById("code-verification-form");
+    const verificationCodeInput = document.getElementById("verification-code");
+    const codeErrorMessage = document.getElementById("code-error-message");
+    const newPasswordContainer = document.getElementById("new-password-container");
+    const newPasswordForm = document.getElementById("new-password-form");
+    const newPasswordInput = document.getElementById("new-password");
+    const confirmPasswordInput = document.getElementById("confirm-password");
+    const passwordErrorMessage = document.getElementById("password-error-message");
+
+    // Prepend +63 automatically, but only once
+    phoneNumberInput.addEventListener("input", function(event) {
+      let phoneNumber = phoneNumberInput.value.trim();
+
+      // If phone number starts with +63, don't add it again, just allow the input
+      if (phoneNumber && !phoneNumber.startsWith("+63")) {
+        phoneNumberInput.value = "+63 " + phoneNumber.replace(/[^0-9]/g, ""); // Only allow numbers and add space after +63
+      } else {
+        // If it's already starting with +63, keep it intact, just clean non-numeric input and add space after +63
+        phoneNumberInput.value = "+63 " + phoneNumber.slice(4).replace(/[^0-9]/g, "");
+      }
+    });
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();  // Prevent form submission
+
+      let phoneNumber = phoneNumberInput.value.trim();
+
+      // Convert +63 to 0 for submission
+      phoneNumber = phoneNumber.replace("+63 ", "0");
+
+      // Validate if the phone number is now starting with 0 and has 10 digits
+      const phoneRegex = /^0[0-9]{10}$/;
+
+      if (!phoneRegex.test(phoneNumber)) {
+        errorMessage.style.display = "block";  // Show error message
+      } else {
+        errorMessage.style.display = "none";  // Hide error message
+        successMessage.style.display = "block";  // Show success message
+
+        // Simulate sending the reset link
+        // For actual use, you can make an AJAX call here
+
+        // Now show the code verification container
+        form.classList.add("hidden");
+        codeVerificationContainer.classList.remove("hidden");
+        codeVerificationContainer.style.animation = "fadeInUp 0.6s ease-out forwards";  // Trigger the animation
+      }
+    });
+
+    codeVerificationForm.addEventListener("submit", function(event) {
+      event.preventDefault();  // Prevent form submission
+
+      const verificationCode = verificationCodeInput.value.trim();
+
+      // Dummy check for the verification code (you can replace this with real validation)
+      const validCode = "123456";  // For example purposes, the valid code is "123456"
+
+      if (verificationCode !== validCode) {
+        codeErrorMessage.style.display = "block";  // Show error message
+      } else {
+        codeErrorMessage.style.display = "none";  // Hide error message
+        alert("Code verified! You can now reset your password.");
+
+        // Show the create new password container
+        codeVerificationContainer.classList.add("hidden");
+        newPasswordContainer.classList.remove("hidden");
+        newPasswordContainer.style.animation = "fadeInUp 0.6s ease-out forwards";  // Trigger the animation
+      }
+    });
+
+    newPasswordForm.addEventListener("submit", function(event) {
+      event.preventDefault();  // Prevent form submission
+
+      const newPassword = newPasswordInput.value.trim();
+      const confirmPassword = confirmPasswordInput.value.trim();
+
+      // Simple check to ensure passwords match
+      if (newPassword !== confirmPassword || newPassword.length < 6) {
+        passwordErrorMessage.style.display = "block";  // Show error message
+      } else {
+        passwordErrorMessage.style.display = "none";  // Hide error message
+        alert("Password created successfully!");
+        // Proceed to password reset (e.g., redirect to a login page or show a success message)
+      }
+    });
+  </script>
+</body>
+</html>
