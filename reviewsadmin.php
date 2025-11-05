@@ -336,7 +336,7 @@ tbody tr:hover {
       <?php
       // Database connection settings
       $host = "mysql-highdreams.alwaysdata.net";        
-      $username = "439165t";         
+      $username = "439165";         
       $password = "Skyworth23"; 
       $dbname = "highdreams_1";
 
