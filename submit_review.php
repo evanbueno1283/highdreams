@@ -9,10 +9,10 @@ if (!isset($_SESSION['email'])) {
 
 header('Content-Type: application/json');
 
-$host = 'localhost';
-$db   = 'fitscan_database';
-$user = 'root';
-$pass = '';
+$host = 'mysql-highdreams.alwaysdata.net';
+$db   = 'highdreams_1';
+$user = '439165';
+$pass = 'Skyworth23';
 
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
