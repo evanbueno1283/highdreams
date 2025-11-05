@@ -1,9 +1,9 @@
 <?php
 session_start(); 
-$host = "localhost";
-$dbname = "fitscan_database";
-$user = "root";
-$pass = "";
+$host = "sql.freedb.tech";
+$user = "freedb_highdreams1";
+$pass = "!*%6Y%fcqmGR67&";
+$dbname = "freedb_highdreams";
 
 $loginMessage = ""; 
 
