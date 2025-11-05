@@ -6,7 +6,7 @@ require 'vendor/autoload.php';
 $step = 'email';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $conn = new mysqli("localhost", "root", "", "fitscan_database");
+    $conn = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
     if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
     if (isset($_POST['email']) && !isset($_POST['otp']) && !isset($_POST['new_password'])) {
