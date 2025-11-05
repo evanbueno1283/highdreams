@@ -1,7 +1,7 @@
 <?php
 // order.php
 
-$mysqli = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
+$conn = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
