@@ -18,20 +18,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
     $sizes = $_POST['size'] ?? [];
 
     // Handle image upload
-    if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
-       $upload_dir = __DIR__ . '/uploads/';
+if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
+    // Set upload directory inside the current PHP file's folder
+    $upload_dir = __DIR__ . '/uploads/';
 
-       $upload_dir = __DIR__ . '/uploads/';
-if (!is_dir($upload_dir)) {
-    if (!mkdir($upload_dir, 0755, true)) {
-        die("Failed to create upload directory. Please check permissions.");
+    // Create folder if it doesn't exist
+    if (!is_dir($upload_dir)) {
+        if (!mkdir($upload_dir, 0755, true)) {
+            die("Failed to create upload directory. Please check server permissions.");
+        }
     }
-}
 
-// Attempt to set writable permissions (safely)
-if (!is_writable($upload_dir)) {
-    if (!chmod($upload_dir, 0755)) {
-        die("Upload directory is not writable. Please check permissions.");
+    // Check if directory is writable
+    if (!is_writable($upload_dir)) {
+        die("Upload directory is not writable. You need to set proper permissions.");
+    }
+
+    // Prepare file info
+    $tmp_name = $_FILES['Shoe_image']['tmp_name'];
+    $name = basename($_FILES['Shoe_image']['name']); // prevent path traversal
+
+    // Move uploaded file
+    $target_file = $upload_dir . $name;
+    if (move_uploaded_file($tmp_name, $target_file)) {
+        echo "File uploaded successfully!";
+    } else {
+        echo "Failed to move uploaded file. Check folder permissions.";
     }
 }
 
