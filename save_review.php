@@ -1,9 +1,9 @@
 <?php
 // Database config
-$host = 'localhost';
-$db   = 'fitscan_database';
-$user = 'root';
-$pass = '';
+$host = 'mysql-highdreams.alwaysdata.net';
+$db   = 'highdreams_1';
+$user = '439165';
+$pass = 'Skyworth23';
 
 // Connect to DB
 $conn = new mysqli($host, $user, $pass, $db);
