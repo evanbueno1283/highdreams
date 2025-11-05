@@ -10,43 +10,11 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle Add Shoe Form Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
-    $shoe_type = $_POST['Shoe_type'] ?? '';
-    $shoe_name = $_POST['Shoe_name'] ?? '';
-    $price = floatval($_POST['Price'] ?? 0);
-    $sizes = $_POST['size'] ?? [];
+ // Handle image upload
+    if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
+       $upload_dir = __DIR__ . '/uploads/';
 
-    // Handle image upload
-if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
-    // Set upload directory inside the current PHP file's folder
-    $upload_dir = __DIR__ . '/uploads/';
-
-    // Create folder if it doesn't exist
-    if (!is_dir($upload_dir)) {
-        if (!mkdir($upload_dir, 0755, true)) {
-            die("Failed to create upload directory. Please check server permissions.");
-        }
-    }
-
-    // Check if directory is writable
-    if (!is_writable($upload_dir)) {
-        die("Upload directory is not writable. You need to set proper permissions.");
-    }
-
-    // Prepare file info
-    $tmp_name = $_FILES['Shoe_image']['tmp_name'];
-    $name = basename($_FILES['Shoe_image']['name']); // prevent path traversal
-
-    // Move uploaded file
-    $target_file = $upload_dir . $name;
-    if (move_uploaded_file($tmp_name, $target_file)) {
-        echo "File uploaded successfully!";
-    } else {
-        echo "Failed to move uploaded file. Check folder permissions.";
-    }
-}
-
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
         $tmp_name = $_FILES['Shoe_image']['tmp_name'];
         $original_name = basename($_FILES['Shoe_image']['name']);
         $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
@@ -104,7 +72,7 @@ if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ER
     } else {
         die("Insert failed: " . $stmt->error);
     }
-
+}
 
 // Handle filter
 $filter_type = $_GET['shoe_type_filter'] ?? '';
