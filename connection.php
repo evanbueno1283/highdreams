@@ -1,10 +1,10 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "fitscan_database";
+$host = "mysql-highdreams.alwaysdata.net";
+$user = "439165";
+$pass = "Skyworth23";
+$dbname = "highdreams_1";
 
-$conn = new mysqli($servername, $username, $password, $database);
+$conn = new mysqli($host, $user, $pass, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
