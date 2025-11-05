@@ -3,7 +3,7 @@ session_start();
 $host = "mysql-highdreams.alwaysdata.net";
 $user = "439165";
 $pass = "Skyworth23";
-$dbname = "yourusername_fitscan";
+$dbname = "highdreams_1";
 
 $loginMessage = ""; 
 
