@@ -3,7 +3,7 @@ if (!isset($_GET['shoe_id'], $_GET['shoename'], $_GET['shoetype'])) {
     exit('Missing parameters');
 }
 
-$pdo = new PDO("mysql:host=localhost;dbname=fitscan_database", "root", "");
+$pdo = new PDO("mysql:host=mysql-highdreams.alwaysdata.net;dbname=highdreams_1", "439165", "Skyworth23");
 
 $query = "SELECT s36, s37, s38, s39, s40, s41, s42, s43, s44, s45 FROM inventory
           WHERE id = ? AND shoe_name = ? AND shoe_type = ?";
