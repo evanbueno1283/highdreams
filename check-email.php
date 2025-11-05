@@ -1,7 +1,7 @@
 <?php
-$host = "mysql-highdreams.alwaysdata.net";
-$user = "439165";
-$pass = "Skyworth23";
+$servername = "mysql-highdreams.alwaysdata.net";
+$username = "439165";
+$password = "Skyworth23";
 $dbname = "highdreams_1";
 
 
