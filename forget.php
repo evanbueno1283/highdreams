@@ -29,14 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
+                $mail->Host = 'smtp-relay.brevo.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'highdreams552@gmail.com';
-                $mail->Password = 'gmfjqsmzlfgrmbwc';
+                $mail->Username = '9ae0cc001@smtp-brevo.com';
+                $mail->Password = getenv('BREVO_SMTP_KEY');
                 $mail->SMTPSecure = 'tls';
                 $mail->Port = 587;
 
-                $mail->setFrom('highdreams552@gmail.com', 'HIGH DREAMS');
+                $mail->setFrom('jwee8802@gmail.com', 'HIGH DREAMS');
                 $mail->addAddress($email);
                 $mail->isHTML(true);
                 $mail->Subject = 'Your OTP Code for Password Reset';
