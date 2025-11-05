@@ -1,8 +1,8 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = ""; 
-$dbname = "fitscan_database";
+$servername = "mysql-highdreams.alwaysdata.net";
+$username = "439165";
+$password = "Skyworth23"; 
+$dbname = "highdreams_1";
 
 
 $conn = new mysqli($servername, $username, $password, $dbname);
