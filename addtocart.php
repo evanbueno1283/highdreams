@@ -7,7 +7,7 @@ if (!isset($_SESSION['user']['id'])) {
 }
 
 // DB Connection
-$mysqli = new mysqli("localhost", "root", "", "fitscan_database");
+$mysqli = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
 if ($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
 }
