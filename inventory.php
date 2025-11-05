@@ -104,7 +104,7 @@ if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ER
     } else {
         die("Insert failed: " . $stmt->error);
     }
-}
+
 
 // Handle filter
 $filter_type = $_GET['shoe_type_filter'] ?? '';
