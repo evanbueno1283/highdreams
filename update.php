@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
-$db = 'fitscan_database';
-$user = 'root';
-$pass = '';
+$host = 'mysql-highdreams.alwaysdata.net';
+$db = 'highdreams_1';
+$user = '439165';
+$pass = 'Skyworth23';
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
