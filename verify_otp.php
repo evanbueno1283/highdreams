@@ -3,7 +3,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $otp_input = $_POST['otp'];
 
-    $conn = new mysqli("localhost", "root", "", "fitscan_database");
+    $mysqli = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
 
     $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND code = ?");
     $stmt->bind_param("ss", $email, $otp_input);
