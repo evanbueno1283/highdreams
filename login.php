@@ -1,9 +1,9 @@
 <?php
 session_start(); 
-$host = "sql.freedb.tech";
-$user = "freedb_highdreams1";
-$pass = "!*%6Y%fcqmGR67&";
-$dbname = "freedb_highdreams";
+$host = "mysql-highdreams.alwaysdata.net";
+$user = "439165";
+$pass = "Skyworth23";
+$dbname = "yourusername_fitscan";
 
 $loginMessage = ""; 
 
