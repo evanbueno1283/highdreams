@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-$mysqli = new mysqli("localhost", "root", "", "fitscan_database");
+$mysqli = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
 if ($mysqli->connect_error) {
     echo json_encode(["success" => false, "error" => "DB connection failed"]);
     exit();
