@@ -335,10 +335,10 @@ tbody tr:hover {
     <tbody>
       <?php
       // Database connection settings
-      $host = "localhost";        
-      $username = "root";         
-      $password = ""; 
-      $dbname = "fitscan_database";
+      $host = "mysql-highdreams.alwaysdata.net";        
+      $username = "439165t";         
+      $password = "Skyworth23"; 
+      $dbname = "highdreams_1";
 
       // Create connection
       $conn = new mysqli($host, $username, $password, $dbname);
@@ -382,4 +382,5 @@ tbody tr:hover {
   </table>
 </div>
 </body>
+
 </html>
