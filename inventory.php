@@ -1,20 +1,28 @@
 <?php
 // DB connection
-$host = "mysql-highdreams.alwaysdata.net";
-$user = "439165";
-$pass = "Skyworth23";
+$servername = "mysql-highdreams.alwaysdata.net";
+$username = "439165";
+$password = "Skyworth23";
 $dbname = "highdreams_1";
 
-$conn = new mysqli($host, $user, $pass, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
- // Handle image upload
+// Handle Add Shoe Form Submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
+    $shoe_type = $_POST['Shoe_type'] ?? '';
+    $shoe_name = $_POST['Shoe_name'] ?? '';
+    $price = floatval($_POST['Price'] ?? 0);
+    $sizes = $_POST['size'] ?? [];
+
+    // Handle image upload
     if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
        $upload_dir = __DIR__ . '/uploads/';
 
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+
         $tmp_name = $_FILES['Shoe_image']['tmp_name'];
         $original_name = basename($_FILES['Shoe_image']['name']);
         $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
