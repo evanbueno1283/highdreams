@@ -10,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
     if (isset($_POST['email']) && !isset($_POST['otp']) && !isset($_POST['new_password'])) {
-       
         $email = $_POST['email'];
         $otp = rand(100000, 999999);
 
@@ -26,14 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update->bind_param("ss", $otp, $email);
             $update->execute();
 
+            // ✅ Configure PHPMailer with Brevo SMTP (free and Render-compatible)
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();
-                $mail->Host = 'smtp-relay.brevo.com';
+                $mail->Host = 'smtp-relay.brevo.com'; // Brevo SMTP
                 $mail->SMTPAuth = true;
-                $mail->Username = '9ae0cc001@smtp-brevo.com';
-                $mail->Password = getenv('BREVO_SMTP_KEY');
-                $mail->SMTPSecure = 'tls';
+                $mail->Username = 'jwee8802@gmail.com'; // your Brevo login
+                $mail->Password = getenv('BREVO_SMTP_KEY'); // set this in Render environment variables
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
 
                 $mail->setFrom('jwee8802@gmail.com', 'HIGH DREAMS');
@@ -50,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     } elseif (isset($_POST['otp'], $_POST['email']) && !isset($_POST['new_password'])) {
-   
         $email = $_POST['email'];
         $otp = $_POST['otp'];
 
@@ -66,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $step = 'otp';
         }
     } elseif (isset($_POST['new_password'], $_POST['email'])) {
-       
         $email = $_POST['email'];
         $newPassword = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
 
@@ -82,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->close();
 }
 ?>
-
+    
 <!DOCTYPE html>
 <html lang="en">
 <head>
