@@ -1,7 +1,8 @@
 <?php
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
 require 'vendor/autoload.php';
+use SendinBlue\Client\Configuration;
+use SendinBlue\Client\Api\TransactionalEmailsApi;
+use GuzzleHttp\Client;
 
 $step = 'email';
 
@@ -25,28 +26,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update->bind_param("ss", $otp, $email);
             $update->execute();
 
-            // ✅ Configure PHPMailer with Brevo SMTP (free and Render-compatible)
-            $mail = new PHPMailer(true);
+            // ✅ Send OTP using Brevo API (Render-friendly)
+            $config = Configuration::getDefaultConfiguration()
+                ->setApiKey('api-key', getenv('BREVO_API_KEY'));
+            $apiInstance = new TransactionalEmailsApi(new Client(), $config);
+
+            $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
+                'to' => [['email' => $email]],
+                'sender' => ['email' => 'jwee8802@gmail.com', 'name' => 'HIGH DREAMS'],
+                'subject' => 'Your OTP Code for Password Reset',
+                'htmlContent' => "Here is your OTP code: <strong>$otp</strong>",
+            ]);
+
             try {
-                $mail->isSMTP();
-                $mail->Host = 'smtp-relay.brevo.com'; // Brevo SMTP
-                $mail->SMTPAuth = true;
-                $mail->Username = 'jwee8802@gmail.com'; // your Brevo login
-                $mail->Password = getenv('BREVO_SMTP_KEY'); // set this in Render environment variables
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 587;
-
-                $mail->setFrom('jwee8802@gmail.com', 'HIGH DREAMS');
-                $mail->addAddress($email);
-                $mail->isHTML(true);
-                $mail->Subject = 'Your OTP Code for Password Reset';
-                $mail->Body = "Here is your OTP code: <strong>$otp</strong>";
-
-                $mail->send();
+                $result = $apiInstance->sendTransacEmail($sendSmtpEmail);
                 echo "<script>alert('OTP sent to your email!');</script>";
                 $step = 'otp';
             } catch (Exception $e) {
-                echo "<script>alert('Mailer Error: {$mail->ErrorInfo}');</script>";
+                echo "<script>alert('Mailer Error: {$e->getMessage()}');</script>";
             }
         }
     } elseif (isset($_POST['otp'], $_POST['email']) && !isset($_POST['new_password'])) {
