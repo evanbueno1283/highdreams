@@ -1,7 +1,7 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-require 'vendor/autoload.php'1
+require 'vendor/autoload.php';
 
 $step = 'email';
 
