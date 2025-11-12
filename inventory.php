@@ -21,8 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
     if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
        $upload_dir = __DIR__ . '/uploads/';
 
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        if (!is_dir($upload_dir)) {
+    mkdir($upload_dir, 0777, true); // recursively create
+}
 
+// Try to make it writable
+chmod($upload_dir, 0777);
+        
         $tmp_name = $_FILES['Shoe_image']['tmp_name'];
         $original_name = basename($_FILES['Shoe_image']['name']);
         $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
