@@ -1,16 +1,16 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 require 'vendor/autoload.php';
-use SendinBlue\Client\Configuration;
-use SendinBlue\Client\Api\TransactionalEmailsApi;
-use GuzzleHttp\Client;
 
 $step = 'email';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $conn = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
+    $conn = new mysqli("highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
     if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
     if (isset($_POST['email']) && !isset($_POST['otp']) && !isset($_POST['new_password'])) {
+       
         $email = $_POST['email'];
         $otp = rand(100000, 999999);
 
@@ -26,27 +26,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update->bind_param("ss", $otp, $email);
             $update->execute();
 
-            // ✅ Send OTP using Brevo API (Render-friendly)
-            $config = Configuration::getDefaultConfiguration()
-                ->setApiKey('api-key', getenv('BREVO_SMTP_KEY'));
-            $apiInstance = new TransactionalEmailsApi(new Client(), $config);
-
-            $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
-                'to' => [['email' => $email]],
-                'sender' => ['email' => 'jwee8802@gmail.com', 'name' => 'HIGH DREAMS'],
-                'subject' => 'Your OTP Code for Password Reset',
-                'htmlContent' => "Here is your OTP code: <strong>$otp</strong>",
-            ]);
-
+            $mail = new PHPMailer(true);
             try {
-                $result = $apiInstance->sendTransacEmail($sendSmtpEmail);
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'highdreams552@gmail.com';
+                $mail->Password = 'gmfjqsmzlfgrmbwc';
+                $mail->SMTPSecure = 'tls';
+                $mail->Port = 587;
+
+                $mail->setFrom('highdreams552@gmail.com', 'HIGH DREAMS');
+                $mail->addAddress($email);
+                $mail->isHTML(true);
+                $mail->Subject = 'Your OTP Code for Password Reset';
+                $mail->Body = "Here is your OTP code: <strong>$otp</strong>";
+
+                $mail->send();
                 echo "<script>alert('OTP sent to your email!');</script>";
                 $step = 'otp';
             } catch (Exception $e) {
-                echo "<script>alert('Mailer Error: {$e->getMessage()}');</script>";
+                echo "<script>alert('Mailer Error: {$mail->ErrorInfo}');</script>";
             }
         }
     } elseif (isset($_POST['otp'], $_POST['email']) && !isset($_POST['new_password'])) {
+   
         $email = $_POST['email'];
         $otp = $_POST['otp'];
 
@@ -62,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $step = 'otp';
         }
     } elseif (isset($_POST['new_password'], $_POST['email'])) {
+       
         $email = $_POST['email'];
         $newPassword = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
 
@@ -77,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->close();
 }
 ?>
-    
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1019,6 +1024,3 @@ input[type="email"],
 
 </body>
 </html>
-
-
-
