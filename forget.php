@@ -1,15 +1,18 @@
 <?php
+session_start(); // ✅ Lagay ito sa pinaka-una ng file
+
 require 'vendor/autoload.php';
 use SendinBlue\Client\Configuration;
 use SendinBlue\Client\Api\TransactionalEmailsApi;
 use GuzzleHttp\Client;
 
-$step = 'email';
+$step = $_SESSION['step'] ?? 'email';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
     if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
+    // Step 1: Email input to send OTP
     if (isset($_POST['email']) && !isset($_POST['otp']) && !isset($_POST['new_password'])) {
         $email = $_POST['email'];
         $otp = rand(100000, 999999);
@@ -26,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update->bind_param("ss", $otp, $email);
             $update->execute();
 
-            // ✅ Send OTP using Brevo API (Render-friendly)
+            // ✅ Send OTP using Brevo API with debug logs
             $config = Configuration::getDefaultConfiguration()
                 ->setApiKey('api-key', getenv('BREVO_API_KEY'));
             $apiInstance = new TransactionalEmailsApi(new Client(), $config);
@@ -39,14 +42,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
 
             try {
+                error_log("Attempting to send OTP email to: $email");
                 $result = $apiInstance->sendTransacEmail($sendSmtpEmail);
+                
+                // Debugging: Log the API response
+                error_log("Brevo API Response: " . print_r($result, true));
                 echo "<script>alert('OTP sent to your email!');</script>";
                 $step = 'otp';
+                
             } catch (Exception $e) {
+                // Debugging: Log the full error
+                error_log("Brevo API Error: " . $e->getMessage());
+                error_log("Error Details: " . print_r($e->getResponseObject(), true));
                 echo "<script>alert('Mailer Error: {$e->getMessage()}');</script>";
             }
         }
-    } elseif (isset($_POST['otp'], $_POST['email']) && !isset($_POST['new_password'])) {
+    } 
+    // Step 2: Verify OTP
+    elseif (isset($_POST['otp'], $_POST['email']) && !isset($_POST['new_password'])) {
         $email = $_POST['email'];
         $otp = $_POST['otp'];
 
@@ -61,7 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo "<script>alert('Invalid OTP');</script>";
             $step = 'otp';
         }
-    } elseif (isset($_POST['new_password'], $_POST['email'])) {
+    } 
+    // Step 3: Reset password
+    elseif (isset($_POST['new_password'], $_POST['email'])) {
         $email = $_POST['email'];
         $newPassword = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
 
@@ -77,6 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->close();
 }
 ?>
+    
+    
     
 <!DOCTYPE html>
 <html lang="en">
