@@ -1,66 +1,76 @@
 <?php
 session_start();
 require 'vendor/autoload.php';
+
 use SendinBlue\Client\Configuration;
 use SendinBlue\Client\Api\TransactionalEmailsApi;
 use GuzzleHttp\Client;
 
-// Database
+// DB connection
 $conn = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
-// Default step
+// Current step (default = email)
 $step = $_SESSION['step'] ?? 'email';
 
-// Handle form
+// Handle form submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    // STEP 1: Send OTP
+    // STEP 1: SEND OTP
     if (isset($_POST['email']) && !isset($_POST['otp']) && !isset($_POST['new_password'])) {
         $email = trim($_POST['email']);
         $otp = rand(100000, 999999);
 
-        $checkUser = $conn->prepare("SELECT * FROM users WHERE email = ?");
-        $checkUser->bind_param("s", $email);
-        $checkUser->execute();
-        $result = $checkUser->get_result();
+        // Check user
+        $check = $conn->prepare("SELECT * FROM users WHERE email = ?");
+        $check->bind_param("s", $email);
+        $check->execute();
+        $result = $check->get_result();
 
         if ($result->num_rows === 0) {
-            echo "<script>alert('Email not found.');</script>";
-            $step = 'email';
+            echo "<script>alert('❌ Email not found!');</script>";
         } else {
-            $update = $conn->prepare("UPDATE users SET code = ? WHERE email = ?");
-            $update->bind_param("ss", $otp, $email);
-            $update->execute();
+            // Save OTP to database
+            $save = $conn->prepare("UPDATE users SET code = ? WHERE email = ?");
+            $save->bind_param("ss", $otp, $email);
+            $save->execute();
 
-            // ✅ Send OTP via Brevo
+            // ✅ Configure Brevo
             $config = Configuration::getDefaultConfiguration()
-                ->setApiKey('api-key', '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');
+                ->setApiKey('api-key', 'BREVO_SMTP_KEY'); // <-- your real API key
             $apiInstance = new TransactionalEmailsApi(new Client(), $config);
 
+            // ✅ Email content
             $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
-                'to' => [['email' => $email]],
                 'sender' => ['email' => 'jwee8802@gmail.com', 'name' => 'HIGH DREAMS'],
-                'subject' => 'Your OTP Code for Password Reset',
-                'htmlContent' => "<h3>Your OTP code:</h3><p style='font-size:18px;'><b>$otp</b></p>"
+                'to' => [['email' => $email]],
+                'subject' => 'HIGH DREAMS Password Reset OTP',
+                'htmlContent' => "
+                    <div style='font-family:sans-serif;'>
+                        <h2>Your OTP Code</h2>
+                        <p>Hello! Here is your verification code for resetting your password:</p>
+                        <h1 style='letter-spacing:5px;'>$otp</h1>
+                        <p>This code will expire soon. Please do not share it with anyone.</p>
+                    </div>
+                "
             ]);
 
+            // ✅ Try sending
             try {
-                $apiInstance->sendTransacEmail($sendSmtpEmail);
-                echo "<script>alert('✅ OTP sent to your email!');</script>";
+                $response = $apiInstance->sendTransacEmail($sendSmtpEmail);
+                echo "<script>alert('✅ OTP has been sent to your email!');</script>";
                 $step = 'otp';
                 $_SESSION['step'] = 'otp';
                 $_SESSION['email'] = $email;
             } catch (Exception $e) {
-                echo "<script>alert('Mailer Error: " . addslashes($e->getMessage()) . "');</script>";
-                $step = 'email';
+                echo "<script>alert('❌ Failed to send email: " . addslashes($e->getMessage()) . "');</script>";
             }
         }
     }
 
-    // STEP 2: Verify OTP
+    // STEP 2: VERIFY OTP
     elseif (isset($_POST['otp'])) {
-        $email = $_SESSION['email'] ?? $_POST['email'];
+        $email = $_SESSION['email'];
         $otp = trim($_POST['otp']);
 
         $verify = $conn->prepare("SELECT * FROM users WHERE email = ? AND code = ?");
@@ -78,21 +88,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // STEP 3: Reset password
+    // STEP 3: RESET PASSWORD
     elseif (isset($_POST['new_password'], $_POST['confirm_password'])) {
-        $email = $_SESSION['email'] ?? $_POST['email'];
-        $newPassword = $_POST['new_password'];
-        $confirmPassword = $_POST['confirm_password'];
+        $email = $_SESSION['email'];
+        $new = $_POST['new_password'];
+        $confirm = $_POST['confirm_password'];
 
-        if ($newPassword !== $confirmPassword) {
-            echo "<script>alert('Passwords do not match.');</script>";
+        if ($new !== $confirm) {
+            echo "<script>alert('❌ Passwords do not match!');</script>";
             $step = 'reset';
         } else {
-            $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
-            $updatePassword = $conn->prepare("UPDATE users SET password = ?, code = NULL WHERE email = ?");
-            $updatePassword->bind_param("ss", $hashed, $email);
-            if ($updatePassword->execute()) {
-                echo "<script>alert('✅ Password updated successfully! Redirecting to login...'); window.location.href='login.php';</script>";
+            $hashed = password_hash($new, PASSWORD_DEFAULT);
+            $update = $conn->prepare("UPDATE users SET password=?, code=NULL WHERE email=?");
+            $update->bind_param("ss", $hashed, $email);
+            if ($update->execute()) {
+                echo "<script>alert('✅ Password successfully updated! Redirecting to login...'); window.location='login.php';</script>";
                 session_destroy();
                 exit;
             } else {
@@ -101,7 +111,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-$conn->close();
 ?>
 
 <!DOCTYPE html>
