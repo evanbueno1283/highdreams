@@ -583,5 +583,5 @@ function deleteShoe(shoeId, shoeName, shoeType) {
 
 </body>
 </html>
-follow this format code
+
 
