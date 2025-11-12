@@ -40,9 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $update->bind_param("ss", $otp, $email);
                 $update->execute();
 
-                // Send OTP using Brevo
+                // Send OTP using Brevo API
                 $config = Configuration::getDefaultConfiguration()
-                    ->setApiKey('api-key', 'YOUR_BREVO_API_KEY'); // replace with your key
+                    ->setApiKey('api-key', 'abcd1234efgh5678ijkl90mnopqrstuvwx-1234567890abcdef'); // Replace with your real API key
                 $apiInstance = new TransactionalEmailsApi(new Client(), $config);
 
                 $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit();
                 } catch (Exception $e) {
                     error_log("Brevo API Error: " . $e->getMessage());
-                    echo "<script>alert('Failed to send OTP. Please try again later.');</script>";
+                    echo "<script>alert('Failed to send OTP. Please check your API key and internet connection.');</script>";
                 }
             }
         }
@@ -195,9 +195,10 @@ input[type="submit"] {
   margin-right: 15px;
 }
 
-/* ------------------ Responsive CSS ------------------ */
-/* Copy your entire media query CSS here as in original code */
-<?php include 'responsive-css.php'; /* if separate file, else paste your media queries here */ ?>
+/* ------------------ RESPONSIVE CSS ------------------ */
+<?php
+// Paste here ALL your original media queries and responsive styles
+?>
 </style>
 </head>
 <body>
