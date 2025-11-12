@@ -1,14 +1,12 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # --- SPA support for Angular under /angular-ar/ ---
+  # --- Angular SPA under /angular-ar/ ---
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} ^/angular-ar/
   RewriteRule ^angular-ar/.*$ /angular-ar/index.html [L]
-
-  # --- allow normal PHP and assets to load ---
 </IfModule>
 
-# --- existing default page ---
+# --- default page ---
 DirectoryIndex login.php
