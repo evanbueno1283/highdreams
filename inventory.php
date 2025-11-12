@@ -19,11 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
 
     // Handle image upload
     if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
-       $upload_dir = $_SERVER['HOME'] . '/uploads/';
+       $upload_dir = __DIR__ . '/uploads/';
 
-if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
-        
         $tmp_name = $_FILES['Shoe_image']['tmp_name'];
         $original_name = basename($_FILES['Shoe_image']['name']);
         $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
@@ -584,5 +583,4 @@ function deleteShoe(shoeId, shoeName, shoeType) {
 
 </body>
 </html>
-
 
