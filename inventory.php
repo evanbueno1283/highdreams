@@ -17,11 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
     $price = floatval($_POST['Price'] ?? 0);
     $sizes = $_POST['size'] ?? [];
 
-    // Handle image upload
+    // ✅ FIXED: Handle image upload using /tmp/
     if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
-       $upload_dir = __DIR__ . '/uploads/';
-
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        $upload_dir = '/tmp/uploads/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
 
         $tmp_name = $_FILES['Shoe_image']['tmp_name'];
         $original_name = basename($_FILES['Shoe_image']['name']);
@@ -36,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
         $destination = $upload_dir . $new_file_name;
 
         if (!move_uploaded_file($tmp_name, $destination)) {
-            die("Failed to upload image.");
+            die("Failed to upload image. Check folder permissions.");
         }
 
-        $shoe_image = 'uploads/' . $new_file_name;
+        $shoe_image = $destination; // stored path
     } else {
-        $shoe_image = ''; // optional: default empty image
+        $shoe_image = ''; // optional default
     }
 
     // Prepare insert statement
@@ -93,18 +94,9 @@ if ($filter_type) {
     $result = $conn->query("SELECT * FROM inventory ORDER BY shoe_name ASC");
 }
 
-$filter_type = $_GET['shoe_type_filter'] ?? '';
-$sql = "SELECT * FROM inventory";
-if (!empty($filter_type)) {
-    $sql .= " WHERE shoe_type='" . $conn->real_escape_string($filter_type) . "'";
-}
-$result = $conn->query($sql);
-
 $types = ['Bulky', 'Slim', 'Basketball', 'Running', 'Slide', 'Classic'];
 
-// ----------------------
-// Handle Edit Shoe (Update)
-// ----------------------
+// Handle Edit Shoe
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
     $id = intval($_POST['id']);
     $shoe_type = $_POST['shoe_type'];
@@ -119,22 +111,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
             WHERE id=? AND shoe_type=? AND shoe_name=?";
 
     if ($stmt = $conn->prepare($sql)) {
-      $s36 = $sizes[36] ?? 0;
-    $s37 = $sizes[37] ?? 0;
-    $s38 = $sizes[38] ?? 0;
-    $s39 = $sizes[39] ?? 0;
-    $s40 = $sizes[40] ?? 0;
-    $s41 = $sizes[41] ?? 0;
-    $s42 = $sizes[42] ?? 0;
-    $s43 = $sizes[43] ?? 0;
-    $s44 = $sizes[44] ?? 0;
-    $s45 = $sizes[45] ?? 0;
+        $s36 = $sizes[36] ?? 0;
+        $s37 = $sizes[37] ?? 0;
+        $s38 = $sizes[38] ?? 0;
+        $s39 = $sizes[39] ?? 0;
+        $s40 = $sizes[40] ?? 0;
+        $s41 = $sizes[41] ?? 0;
+        $s42 = $sizes[42] ?? 0;
+        $s43 = $sizes[43] ?? 0;
+        $s44 = $sizes[44] ?? 0;
+        $s45 = $sizes[45] ?? 0;
 
         $stmt->bind_param(
             "sdiiiiiiiiiiiss",
             $new_shoe_name, $price,
-           $s36, $s37, $s38, $s39, $s40,
-        $s41, $s42, $s43, $s44, $s45,
+            $s36, $s37, $s38, $s39, $s40,
+            $s41, $s42, $s43, $s44, $s45,
             $id, $shoe_type, $original_shoe_name
         );
         if ($stmt->execute()) {
@@ -376,7 +368,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
 
 <div class="inventory">
   <h2>Inventory</h2>
-
   <button class="btn btn-add" id="add-shoe-btn">Add New Shoe</button>
 
   <form method="GET" style="margin-top: 20px;">
@@ -384,7 +375,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
     <select name="shoe_type_filter" id="shoe_type_filter" onchange="this.form.submit()">
       <option value="">All Shoes</option>
       <?php
-        $types = ['Bulky', 'Slim', 'Basketball', 'Running', 'Slide', 'Classic'];
         foreach ($types as $type) {
           $selected = ($filter_type === $type) ? 'selected' : '';
           echo "<option value=\"$type\" $selected>$type</option>";
@@ -394,10 +384,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
   </form>
 
   <!-- Add Modal -->
-  <div class="popup-modal" id="popup-modal" role="dialog" aria-modal="true" aria-labelledby="add-shoe-title">
+  <div class="popup-modal" id="popup-modal">
     <div class="popup-modal-content">
-      <span class="close-btn" id="close-btn" aria-label="Close Add Shoe">&times;</span>
-      <h3 id="add-shoe-title">Add New Shoe</h3>
+      <span class="close-btn" id="close-btn">&times;</span>
+      <h3>Add New Shoe</h3>
       <form class="shoe-form" method="POST" enctype="multipart/form-data" action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>">
         <div class="form-group">
           <label for="Shoe_image">Upload Image</label>
@@ -421,8 +411,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
           <div class="size-inputs">
             <?php for ($i = 36; $i <= 45; $i++): ?>
               <div class="size-column">
-                <label for="size-<?= $i ?>"><?= $i ?></label>
-                <input type="number" name="size[<?= $i ?>]" id="size-<?= $i ?>" min="0" value="0">
+                <label><?= $i ?></label>
+                <input type="number" name="size[<?= $i ?>]" min="0" value="0">
               </div>
             <?php endfor; ?>
           </div>
@@ -433,45 +423,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
         </div>
         <div class="form-actions">
           <button class="btn btn-add" type="submit">Add</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Edit Modal -->
-  <div class="popup-modal" id="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-shoe-title">
-    <div class="popup-modal-content">
-      <span class="close-btn" id="close-btn-edit" aria-label="Close Edit Shoe">&times;</span>
-      <h3 id="edit-shoe-title">Edit Shoe</h3>
-      <form id="edit-form" class="shoe-form" method="POST" action="edit.php" enctype="multipart/form-data">
-        <input type="hidden" name="id" id="edit-id">
-        <input type="hidden" name="original_shoe_name" id="edit-original-name">
-        <input type="hidden" name="shoe_type" id="edit-type">
-
-        <div class="form-group">
-          <label for="edit-name">New Shoe Name</label>
-          <input type="text" name="new_shoe_name" id="edit-name" required>
-        </div>
-
-        <div class="form-group">
-          <label for="edit-price">Price</label>
-          <input type="number" name="price" id="edit-price" required step="0.01" min="0">
-        </div>
-
-        <div class="form-group">
-          <label>Sizes</label>
-          <div class="size-inputs">
-            <?php for ($i = 36; $i <= 45; $i++): ?>
-              <div class="size-column">
-                <label for="edit-size-<?= $i ?>"><?= $i ?></label>
-                <input type="number" name="size[<?= $i ?>]" id="edit-size-<?= $i ?>" min="0" value="0">
-              </div>
-            <?php endfor; ?>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-add" type="submit">Update Shoe</button>
         </div>
       </form>
     </div>
@@ -491,9 +442,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
       if ($result && $result->num_rows > 0):
         while ($row = $result->fetch_assoc()):
           $sizes = [];
-          for ($i = 36; $i <= 45; $i++) {
-            $sizes[$i] = (int)$row["s$i"];
-          }
+          for ($i = 36; $i <= 45; $i++) $sizes[$i] = (int)$row["s$i"];
           $sizes_json = htmlspecialchars(json_encode($sizes));
       ?>
       <tr>
@@ -501,25 +450,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
         <?php for ($i = 36; $i <= 45; $i++): ?>
           <td><?= (int)$row["s$i"] ?></td>
         <?php endfor; ?>
-        <td style="display: flex; gap: 5px;">
-          <button
-            type="button"
-            class="btn btn-edit"
-            onclick='openEditModal(
-              "<?= htmlspecialchars($row['shoe_type']) ?>",
-              "<?= htmlspecialchars($row['shoe_name']) ?>",
-              <?= (int)$row['id'] ?>,
-              <?= (float)$row['price'] ?>,
-              <?= $sizes_json ?>
-            )'>
-            Edit
-          </button>
-          <button
-            type="button"
-            class="btn btn-delete"
-            onclick="deleteShoe(<?= (int)$row['id'] ?>, '<?= htmlspecialchars($row['shoe_name']) ?>', '<?= htmlspecialchars($row['shoe_type']) ?>')">
-            Delete
-          </button>
+        <td>
+          <button type="button" class="btn btn-edit" onclick='openEditModal("<?= $row["shoe_type"] ?>","<?= $row["shoe_name"] ?>",<?= $row["id"] ?>,<?= $row["price"] ?>,<?= $sizes_json ?>)'>Edit</button>
+          <button type="button" class="btn btn-delete" onclick="deleteShoe(<?= $row['id'] ?>,'<?= $row['shoe_name'] ?>','<?= $row['shoe_type'] ?>')">Delete</button>
         </td>
       </tr>
       <?php endwhile; else: ?>
