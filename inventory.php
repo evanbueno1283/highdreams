@@ -1,5 +1,7 @@
 <?php
-// DB connection
+// ----------------------
+// Database connection
+// ----------------------
 $servername = "mysql-highdreams.alwaysdata.net";
 $username = "439165";
 $password = "Skyworth23";
@@ -10,7 +12,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle Add Shoe Form Submission
+// ----------------------
+// Handle Add Shoe Form
+// ----------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
     $shoe_type = $_POST['Shoe_type'] ?? '';
     $shoe_name = $_POST['Shoe_name'] ?? '';
@@ -19,9 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
 
     // Handle image upload
     if (isset($_FILES['Shoe_image']) && $_FILES['Shoe_image']['error'] === UPLOAD_ERR_OK) {
-       $upload_dir = __DIR__ . '/uploads/';
-
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        $upload_dir = __DIR__ . '/uploads/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0775, true);
 
         $tmp_name = $_FILES['Shoe_image']['tmp_name'];
         $original_name = basename($_FILES['Shoe_image']['name']);
@@ -36,32 +39,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
         $destination = $upload_dir . $new_file_name;
 
         if (!move_uploaded_file($tmp_name, $destination)) {
-            die("Failed to upload image.");
+            die("Failed to upload image. Check folder permissions.");
         }
 
         $shoe_image = 'uploads/' . $new_file_name;
     } else {
-        $shoe_image = ''; // optional: default empty image
+        $shoe_image = ''; // optional default
     }
 
-    // Prepare insert statement
+    // Insert into DB
     $sql = "INSERT INTO inventory (
         shoe_type, shoe_name, price, shoe_image,
         s36, s37, s38, s39, s40, s41, s42, s43, s44, s45
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+    
     $stmt = $conn->prepare($sql);
     if (!$stmt) die("Prepare failed: " . $conn->error);
 
-    $s36 = $sizes[36] ?? 0;
-    $s37 = $sizes[37] ?? 0;
-    $s38 = $sizes[38] ?? 0;
-    $s39 = $sizes[39] ?? 0;
-    $s40 = $sizes[40] ?? 0;
-    $s41 = $sizes[41] ?? 0;
-    $s42 = $sizes[42] ?? 0;
-    $s43 = $sizes[43] ?? 0;
-    $s44 = $sizes[44] ?? 0;
+    $s36 = $sizes[36] ?? 0; $s37 = $sizes[37] ?? 0; $s38 = $sizes[38] ?? 0;
+    $s39 = $sizes[39] ?? 0; $s40 = $sizes[40] ?? 0; $s41 = $sizes[41] ?? 0;
+    $s42 = $sizes[42] ?? 0; $s43 = $sizes[43] ?? 0; $s44 = $sizes[44] ?? 0;
     $s45 = $sizes[45] ?? 0;
 
     $stmt->bind_param(
@@ -82,7 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['Shoe_name'])) {
     }
 }
 
-// Handle filter
+// ----------------------
+// Fetch inventory
+// ----------------------
 $filter_type = $_GET['shoe_type_filter'] ?? '';
 if ($filter_type) {
     $stmt = $conn->prepare("SELECT * FROM inventory WHERE shoe_type = ? ORDER BY shoe_name ASC");
@@ -92,13 +91,6 @@ if ($filter_type) {
 } else {
     $result = $conn->query("SELECT * FROM inventory ORDER BY shoe_name ASC");
 }
-
-$filter_type = $_GET['shoe_type_filter'] ?? '';
-$sql = "SELECT * FROM inventory";
-if (!empty($filter_type)) {
-    $sql .= " WHERE shoe_type='" . $conn->real_escape_string($filter_type) . "'";
-}
-$result = $conn->query($sql);
 
 $types = ['Bulky', 'Slim', 'Basketball', 'Running', 'Slide', 'Classic'];
 
@@ -113,30 +105,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
     $price = floatval($_POST['price']);
     $sizes = $_POST['size'] ?? [];
 
-    $sql = "UPDATE inventory SET shoe_name=?, price=?, 
-            s36=?, s37=?, s38=?, s39=?, s40=?, 
+    $sql = "UPDATE inventory SET shoe_name=?, price=?,
+            s36=?, s37=?, s38=?, s39=?, s40=?,
             s41=?, s42=?, s43=?, s44=?, s45=? 
             WHERE id=? AND shoe_type=? AND shoe_name=?";
 
     if ($stmt = $conn->prepare($sql)) {
-      $s36 = $sizes[36] ?? 0;
-    $s37 = $sizes[37] ?? 0;
-    $s38 = $sizes[38] ?? 0;
-    $s39 = $sizes[39] ?? 0;
-    $s40 = $sizes[40] ?? 0;
-    $s41 = $sizes[41] ?? 0;
-    $s42 = $sizes[42] ?? 0;
-    $s43 = $sizes[43] ?? 0;
-    $s44 = $sizes[44] ?? 0;
-    $s45 = $sizes[45] ?? 0;
+        $s36 = $sizes[36] ?? 0; $s37 = $sizes[37] ?? 0; $s38 = $sizes[38] ?? 0;
+        $s39 = $sizes[39] ?? 0; $s40 = $sizes[40] ?? 0; $s41 = $sizes[41] ?? 0;
+        $s42 = $sizes[42] ?? 0; $s43 = $sizes[43] ?? 0; $s44 = $sizes[44] ?? 0;
+        $s45 = $sizes[45] ?? 0;
 
         $stmt->bind_param(
             "sdiiiiiiiiiiiss",
             $new_shoe_name, $price,
-           $s36, $s37, $s38, $s39, $s40,
-        $s41, $s42, $s43, $s44, $s45,
+            $s36, $s37, $s38, $s39, $s40,
+            $s41, $s42, $s43, $s44, $s45,
             $id, $shoe_type, $original_shoe_name
         );
+
         if ($stmt->execute()) {
             echo "<script>alert('Shoe updated successfully!'); window.location='inventory.php';</script>";
             exit;
@@ -363,116 +350,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
 
 <header class="header">
   <div class="logo-container">
-    <img src="image/logo1.png" alt="Shoe Store Logo" style="height: 60px;">
-    <img src="image/hdb2.png" alt="Second Logo" style="height: 60px;">
+    <img src="image/logo1.png" style="height: 60px;">
+    <img src="image/hdb2.png" style="height: 60px;">
   </div>
   <div class="user-options">
-    <a href="admin.php" class="home-logo">
-      <img src="image/home.png" alt="Home Logo">
-    </a>
+    <a href="admin.php" class="home-logo"><img src="image/home.png" alt="Home Logo"></a>
     <button id="logout-button">Logout</button>
   </div>
 </header>
 
 <div class="inventory">
   <h2>Inventory</h2>
-
   <button class="btn btn-add" id="add-shoe-btn">Add New Shoe</button>
 
   <form method="GET" style="margin-top: 20px;">
     <label for="shoe_type_filter">Filter by Shoe Type:</label>
-    <select name="shoe_type_filter" id="shoe_type_filter" onchange="this.form.submit()">
+    <select name="shoe_type_filter" onchange="this.form.submit()">
       <option value="">All Shoes</option>
-      <?php
-        $types = ['Bulky', 'Slim', 'Basketball', 'Running', 'Slide', 'Classic'];
-        foreach ($types as $type) {
-          $selected = ($filter_type === $type) ? 'selected' : '';
-          echo "<option value=\"$type\" $selected>$type</option>";
-        }
-      ?>
+      <?php foreach ($types as $type): ?>
+        <option value="<?= $type ?>" <?= ($filter_type === $type) ? 'selected' : '' ?>><?= $type ?></option>
+      <?php endforeach; ?>
     </select>
   </form>
 
   <!-- Add Modal -->
-  <div class="popup-modal" id="popup-modal" role="dialog" aria-modal="true" aria-labelledby="add-shoe-title">
+  <div class="popup-modal" id="popup-modal">
     <div class="popup-modal-content">
-      <span class="close-btn" id="close-btn" aria-label="Close Add Shoe">&times;</span>
-      <h3 id="add-shoe-title">Add New Shoe</h3>
-      <form class="shoe-form" method="POST" enctype="multipart/form-data" action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>">
-        <div class="form-group">
-          <label for="Shoe_image">Upload Image</label>
-          <input type="file" name="Shoe_image" id="Shoe_image" accept="image/*" required>
+      <span class="close-btn" id="close-btn">&times;</span>
+      <h3>Add New Shoe</h3>
+      <form method="POST" enctype="multipart/form-data">
+        <label>Upload Image</label>
+        <input type="file" name="Shoe_image" accept="image/*" required>
+        <label>Shoe Type</label>
+        <select name="Shoe_type" required>
+          <option value="">Select Type</option>
+          <?php foreach ($types as $type): ?>
+            <option value="<?= $type ?>"><?= $type ?></option>
+          <?php endforeach; ?>
+        </select>
+        <label>Shoe Name</label>
+        <input type="text" name="Shoe_name" required>
+        <label>Sizes</label>
+        <div class="size-inputs">
+          <?php for ($i = 36; $i <= 45; $i++): ?>
+            <div class="size-column">
+              <label><?= $i ?></label>
+              <input type="number" name="size[<?= $i ?>]" min="0" value="0">
+            </div>
+          <?php endfor; ?>
         </div>
-        <div class="form-group">
-          <label for="Shoe_type">Shoe Type</label>
-          <select name="Shoe_type" id="Shoe_type" required>
-            <option value="">Select Type</option>
-            <?php foreach ($types as $type): ?>
-              <option value="<?= $type ?>"><?= $type ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="Shoe_name">Shoe Name</label>
-          <input type="text" name="Shoe_name" id="Shoe_name" placeholder="Shoe name" required>
-        </div>
-        <div class="form-group">
-          <label>Sizes</label>
-          <div class="size-inputs">
-            <?php for ($i = 36; $i <= 45; $i++): ?>
-              <div class="size-column">
-                <label for="size-<?= $i ?>"><?= $i ?></label>
-                <input type="number" name="size[<?= $i ?>]" id="size-<?= $i ?>" min="0" value="0">
-              </div>
-            <?php endfor; ?>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="Price">Price</label>
-          <input type="number" name="Price" id="Price" placeholder="Price" required step="0.01" min="0">
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-add" type="submit">Add</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Edit Modal -->
-  <div class="popup-modal" id="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-shoe-title">
-    <div class="popup-modal-content">
-      <span class="close-btn" id="close-btn-edit" aria-label="Close Edit Shoe">&times;</span>
-      <h3 id="edit-shoe-title">Edit Shoe</h3>
-      <form id="edit-form" class="shoe-form" method="POST" action="edit.php" enctype="multipart/form-data">
-        <input type="hidden" name="id" id="edit-id">
-        <input type="hidden" name="original_shoe_name" id="edit-original-name">
-        <input type="hidden" name="shoe_type" id="edit-type">
-
-        <div class="form-group">
-          <label for="edit-name">New Shoe Name</label>
-          <input type="text" name="new_shoe_name" id="edit-name" required>
-        </div>
-
-        <div class="form-group">
-          <label for="edit-price">Price</label>
-          <input type="number" name="price" id="edit-price" required step="0.01" min="0">
-        </div>
-
-        <div class="form-group">
-          <label>Sizes</label>
-          <div class="size-inputs">
-            <?php for ($i = 36; $i <= 45; $i++): ?>
-              <div class="size-column">
-                <label for="edit-size-<?= $i ?>"><?= $i ?></label>
-                <input type="number" name="size[<?= $i ?>]" id="edit-size-<?= $i ?>" min="0" value="0">
-              </div>
-            <?php endfor; ?>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-add" type="submit">Update Shoe</button>
-        </div>
+        <label>Price</label>
+        <input type="number" name="Price" required step="0.01" min="0">
+        <button type="submit" class="btn btn-add">Add</button>
       </form>
     </div>
   </div>
@@ -481,49 +410,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_shoe_name'])) {
   <table>
     <thead>
       <tr>
+        <th>Image</th>
         <th>Shoe Name</th>
-        <?php for ($i = 36; $i <= 45; $i++) echo "<th>Size $i</th>"; ?>
+        <?php for ($i=36;$i<=45;$i++) echo "<th>$i</th>"; ?>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <?php
-      if ($result && $result->num_rows > 0):
-        while ($row = $result->fetch_assoc()):
-          $sizes = [];
-          for ($i = 36; $i <= 45; $i++) {
-            $sizes[$i] = (int)$row["s$i"];
-          }
-          $sizes_json = htmlspecialchars(json_encode($sizes));
-      ?>
-      <tr>
-        <td><strong><?= htmlspecialchars($row['shoe_name']) ?></strong></td>
-        <?php for ($i = 36; $i <= 45; $i++): ?>
-          <td><?= (int)$row["s$i"] ?></td>
-        <?php endfor; ?>
-        <td style="display: flex; gap: 5px;">
-          <button
-            type="button"
-            class="btn btn-edit"
-            onclick='openEditModal(
-              "<?= htmlspecialchars($row['shoe_type']) ?>",
-              "<?= htmlspecialchars($row['shoe_name']) ?>",
-              <?= (int)$row['id'] ?>,
-              <?= (float)$row['price'] ?>,
-              <?= $sizes_json ?>
-            )'>
-            Edit
-          </button>
-          <button
-            type="button"
-            class="btn btn-delete"
-            onclick="deleteShoe(<?= (int)$row['id'] ?>, '<?= htmlspecialchars($row['shoe_name']) ?>', '<?= htmlspecialchars($row['shoe_type']) ?>')">
-            Delete
-          </button>
-        </td>
-      </tr>
+      <?php if ($result && $result->num_rows > 0): while($row=$result->fetch_assoc()): ?>
+        <tr>
+          <td>
+            <?php if ($row['shoe_image']): ?>
+              <img src="<?= htmlspecialchars($row['shoe_image']) ?>" style="height:50px;">
+            <?php endif; ?>
+          </td>
+          <td><?= htmlspecialchars($row['shoe_name']) ?></td>
+          <?php for ($i=36;$i<=45;$i++): ?>
+            <td><?= (int)$row["s$i"] ?></td>
+          <?php endfor; ?>
+          <td>
+            <!-- Edit/Delete buttons here -->
+          </td>
+        </tr>
       <?php endwhile; else: ?>
-      <tr><td colspan="13">No inventory found.</td></tr>
+        <tr><td colspan="13">No inventory found.</td></tr>
       <?php endif; ?>
     </tbody>
   </table>
