@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // ✅ Send OTP using Brevo API (Render-friendly)
             $config = Configuration::getDefaultConfiguration()
-                ->setApiKey('api-key', getenv('BREVO_API_KEY'));
+                ->setApiKey('api-key', getenv('eyJhcGlfa2V5IjoieGtleXNpYi04MTIzNjZkOWU1NmU1Yzc2N2Y2ZmRhYjBiODM2NTQzZWEyYmI2ODgzYjJhZTdhZjY5OGZmODc3YmJmN2NkYjY3LVRtaTRiZnJoT1pER2ZoblYifQ=='));
             $apiInstance = new TransactionalEmailsApi(new Client(), $config);
 
             $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
