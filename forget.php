@@ -1,172 +1,118 @@
 <?php
-session_start(); // ✅ Always start session first
-
+session_start();
 require 'vendor/autoload.php';
 use SendinBlue\Client\Configuration;
 use SendinBlue\Client\Api\TransactionalEmailsApi;
 use GuzzleHttp\Client;
 
-// Use session to track current step
-$step = $_SESSION['step'] ?? 'email';
+// Use session to track OTP step
+$step = $_SESSION['step'] ?? 'request';
+$message = '';
 
-// Database connection
-$conn = new mysqli("mysql-highdreams.alwaysdata.net", "439165", "Skyworth23", "highdreams_1");
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+// Function to generate 6-digit OTP
+function generate_otp($length = 6) {
+    $num = random_int(0, (int) pow(10, $length) - 1);
+    return str_pad((string)$num, $length, '0', STR_PAD_LEFT);
+}
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Function to send OTP using Brevo (SendinBlue) API
+function send_otp_mail($to_email, $otp) {
+    $config = Configuration::getDefaultConfiguration()->setApiKey('api-key', getenv('HD_HD'));
+    $apiInstance = new TransactionalEmailsApi(new Client(), $config);
 
-    // STEP 1: Send OTP
-    if (isset($_POST['email']) && !isset($_POST['otp']) && !isset($_POST['new_password'])) {
-        $email = $_POST['email'];
-        $otp = rand(100000, 999999);
+    $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
+        'to' => [[ 'email' => $to_email ]],
+        'templateId' => null,
+        'subject' => 'Your Verification Code (OTP)',
+        'htmlContent' => "<p>Kumusta,</p><p>Ang iyong OTP code ay: <strong>{$otp}</strong></p><p>Mag-expire ito sa 5 minuto.</p>",
+        'sender' => ['name' => 'Your App Name', 'email' => 'noreply@yourapp.com']
+    ]);
 
-        // Check if user exists
-        $checkUser = $conn->prepare("SELECT * FROM users WHERE email = ?");
-        $checkUser->bind_param("s", $email);
-        $checkUser->execute();
-        $result = $checkUser->get_result();
+    try {
+        $apiInstance->sendTransacEmail($sendSmtpEmail);
+        return true;
+    } catch (Exception $e) {
+        error_log('Brevo Error: ' . $e->getMessage());
+        return false;
+    }
+}
 
-        if ($result->num_rows === 0) {
-            echo "<script>alert('Email not found.');</script>";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] === 'request' && isset($_POST['email'])) {
+        $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+        if (!$email) {
+            $message = 'Please enter a valid email address.';
         } else {
-            // Save OTP in database
-            $update = $conn->prepare("UPDATE users SET code = ? WHERE email = ?");
-            $update->bind_param("ss", $otp, $email);
-            $update->execute();
-
-            // ✅ Send OTP using Brevo API
-            $config = Configuration::getDefaultConfiguration()
-                ->setApiKey('api-key', getenv('HD_HD')); // Make sure HD_HD env variable has your API key
-            $apiInstance = new TransactionalEmailsApi(new Client(), $config);
-
-            $sendSmtpEmail = new \SendinBlue\Client\Model\SendSmtpEmail([
-                'to' => [['email' => $email]],
-                'sender' => ['email' => 'jwee8802@gmail.com', 'name' => 'HIGH DREAMS'],
-                'subject' => 'Your OTP Code for Password Reset',
-                'htmlContent' => "Here is your OTP code: <strong>$otp</strong>",
-            ]);
-
-            try {
-                $result = $apiInstance->sendTransacEmail($sendSmtpEmail);
-                $_SESSION['step'] = 'otp';
-                $step = 'otp';
-                echo "<script>alert('OTP sent to your email!');</script>";
-            } catch (Exception $e) {
-                error_log('Mailer Error: '.$e->getMessage());
-                echo "<script>alert('Mailer Error. Check server logs.');</script>";
-            }
-        }
-    } 
-
-    // STEP 2: Verify OTP
-    elseif (isset($_POST['otp'], $_POST['email']) && !isset($_POST['new_password'])) {
-        $email = $_POST['email'];
-        $otp = $_POST['otp'];
-
-        $verify = $conn->prepare("SELECT * FROM users WHERE email = ? AND code = ?");
-        $verify->bind_param("ss", $email, $otp);
-        $verify->execute();
-        $result = $verify->get_result();
-
-        if ($result->num_rows === 1) {
-            $_SESSION['step'] = 'reset';
-            $step = 'reset';
-        } else {
-            echo "<script>alert('Invalid OTP');</script>";
-            $_SESSION['step'] = 'otp';
-            $step = 'otp';
-        }
-    } 
-
-    // STEP 3: Reset Password
-    elseif (isset($_POST['new_password'], $_POST['confirm_password'], $_POST['email'])) {
-        $email = $_POST['email'];
-        $newPassword = $_POST['new_password'];
-        $confirmPassword = $_POST['confirm_password'];
-
-        if ($newPassword !== $confirmPassword) {
-            echo "<script>alert('Passwords do not match');</script>";
-            $_SESSION['step'] = 'reset';
-            $step = 'reset';
-        } else {
-            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-            $updatePassword = $conn->prepare("UPDATE users SET password = ?, code = NULL WHERE email = ?");
-            $updatePassword->bind_param("ss", $hashedPassword, $email);
-
-            if ($updatePassword->execute()) {
-                unset($_SESSION['step']); // Clear step after reset
-                echo "<script>alert('Password updated successfully! Redirecting to login...'); window.location.href='login.php';</script>";
+            $otp = generate_otp(6);
+            if (send_otp_mail($email, $otp)) {
+                $_SESSION['otp_code'] = $otp;
+                $_SESSION['otp_email'] = $email;
+                $_SESSION['otp_expires'] = time() + 300; // 5 min
+                $message = 'OTP sent to ' . htmlspecialchars($email) . '. Please check your inbox.';
             } else {
-                echo "<script>alert('Failed to update password.');</script>";
+                $message = 'Failed to send OTP. Check server logs or API key.';
             }
+        }
+    } elseif (isset($_POST['action']) && $_POST['action'] === 'verify' && isset($_POST['otp_input'])) {
+        $user_otp = trim($_POST['otp_input']);
+        $stored = $_SESSION['otp_code'] ?? null;
+        $expires = $_SESSION['otp_expires'] ?? 0;
+
+        if (!$stored || time() > $expires) {
+            $message = 'OTP expired or not requested. Please request a new code.';
+        } elseif (hash_equals($stored, $user_otp)) {
+            unset($_SESSION['otp_code'], $_SESSION['otp_expires']);
+            $message = 'OTP verified successfully!';
+        } else {
+            $message = 'Invalid OTP. Please try again.';
         }
     }
-
-    $conn->close();
 }
 ?>
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forgot Password</title>
-<link rel="icon" href="image/logo1.png" type="image/png">
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brevo OTP Interface</title>
 <style>
-/* ======= Basic Styling ======= */
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:sans-serif;background:url('image/logo3.jpeg') no-repeat center center fixed;background-size:cover;}
-.form-container{display:flex;justify-content:center;align-items:center;margin-top:100px;}
-.form-box{background:rgba(255,255,255,0.85);padding:30px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.2);margin-top:100px;}
-input[type="email"],input[type="text"],input[type="password"],input[type="submit"]{width:100%;padding:12px;margin-top:12px;border-radius:6px;border:1px solid #ccc;}
-input[type="submit"]{background-color:#000;color:white;border:none;cursor:pointer;}
-input[type="submit"]:hover{background-color:#333;}
-.header{background-color:#000;padding:20px;display:flex;justify-content:space-between;align-items:center;}
-.logo-container{display:flex;align-items:center;}
-.logo img,.second-logo img{height:50px;margin-right:15px;}
-h2{text-align:center;margin-top:-30px;}
-.back-button img{width:100px;height:100px;cursor:pointer;}
-/* ======= Responsive ======= */
-/* You can keep all your existing media queries here */
+body { font-family: Arial, sans-serif; background: #f6f8fa; padding: 30px; }
+.card { background: #fff; max-width: 420px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+input[type="email"], input[type="text"] { width:100%; padding:10px; margin:8px 0; border-radius:4px; border:1px solid #ddd; }
+button { padding:10px 14px; border-radius:6px; border:0; cursor:pointer; }
+.btn-primary { background:#2563eb; color:#fff; }
+.message { margin:10px 0; padding:8px; background:#eef2ff; border-radius:4px; }
 </style>
 </head>
 <body>
+<div class="card">
+<h2>Send OTP via Brevo</h2>
+<?php if ($message): ?>
+  <div class="message"><?php echo htmlspecialchars($message); ?></div>
+<?php endif; ?>
 
-<header class="header">
-  <div class="logo-container">
-    <div class="logo"><img src="image/logo1.png" alt="Logo"></div>
-    <div class="second-logo"><img src="image/hdb2.png" alt="Logo 2"></div>
-  </div>
-</header>
-
-<div class="form-container">
-  <div class="form-box">
-    <a href="login.php" class="back-button"><img src="image/back.png" alt="Back"></a>
-    <h2>Forgot Password</h2>
-    <form method="POST">
-      <?php if ($step === 'email'): ?>
-        <label>Enter your registered email:</label>
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="submit" value="Send OTP">
-      <?php elseif ($step === 'otp'): ?>
-        <input type="hidden" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-        <label>Enter the OTP sent to your email:</label>
-        <input type="text" name="otp" required placeholder="Enter OTP">
-        <input type="submit" value="Verify OTP">
-      <?php elseif ($step === 'reset'): ?>
-        <input type="hidden" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-        <label>New Password:</label>
-        <input type="password" name="new_password" required placeholder="New Password">
-        <label>Confirm Password:</label>
-        <input type="password" name="confirm_password" required placeholder="Confirm Password">
-        <input type="submit" value="Reset Password">
-      <?php endif; ?>
-    </form>
-  </div>
+<?php if (empty($_SESSION['otp_code'])): ?>
+<form method="post">
+  <input type="hidden" name="action" value="request">
+  <label for="email">Email address</label>
+  <input type="email" id="email" name="email" required placeholder="you@example.com">
+  <button type="submit" class="btn-primary">Send OTP</button>
+</form>
+<?php else: ?>
+<form method="post">
+  <input type="hidden" name="action" value="verify">
+  <label for="otp_input">Enter OTP</label>
+  <input type="text" id="otp_input" name="otp_input" required placeholder="6-digit code">
+  <button type="submit" class="btn-primary">Verify OTP</button>
+</form>
+<form method="post" style="margin-top:10px;">
+  <input type="hidden" name="action" value="request">
+  <button type="submit">Resend OTP</button>
+</form>
+<?php endif; ?>
+<hr>
+<small>Make sure your Brevo API key is saved in environment variable <code>HD_HD</code>. No other setup is required.</small>
 </div>
-
 </body>
 </html>
